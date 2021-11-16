@@ -1,0 +1,14 @@
+{
+  "name": "pngzip",
+  "version": "1.0.0",
+  "description": "",
+  "main": "zip.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "png-info": "0.0.1"
+  }
+}
