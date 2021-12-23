@@ -7,6 +7,8 @@ const PNGInfo = require('png-info');
 // 获取目录下的所有js文件
 const jsFiles = [];
 
+let g_ignore = [];
+
 /**
  * 文件遍历方法
  * @param filePath 需要遍历的文件路径
@@ -24,8 +26,17 @@ const jsFiles = [];
         var isDir = stats.isDirectory(); //是文件夹
         if (isFile) {
             let pathT = path.parse( filename );
+            let ig = false;
+            if( g_ignore.length > 0 ) {
+                for(let it of g_ignore) {
+                    if( pathT.name.startsWith(it) ) {
+                        ig = true;
+                        break;
+                    }
+                }
+            }
             
-            if( pathT.ext === '.png' ) {
+            if( pathT.ext === '.png' && ig===false ) {
                 jsFiles.push( `${filePath}/${filename}` );
             }
         }
@@ -36,6 +47,7 @@ const jsFiles = [];
 }
 
 const args = process.argv.slice(2);
+console.log(args);
 let handlePath = '';
 if( args.length > 0 ) {
     if( fs.existsSync( args[0] ) === true ) {
@@ -44,7 +56,23 @@ if( args.length > 0 ) {
         console.error('路径错误', );
     }
 
+    if( args.length > 1 ) {
+        for(let i = 1; i<args.length;i++){
+            let a = args[i].split('=');
+            if(a.length=== 2){
+                console.log(a);
+                switch(a[0]){
+                    case '-e':
+                    {
+                        g_ignore = a[1].split(',');
+                    }break;
+                }
+            }
+
+        }
+    }
 }
+
 
 if( handlePath.length > 0 ) {
     getFiles(handlePath);
@@ -54,10 +82,16 @@ if( handlePath.length > 0 ) {
     {
         let stats = fs.statSync( it );
         let imgInfo = fs.readFileSync(it);
-        let pngInfo = new PNGInfo(imgInfo);
+
+        let pngInfo = null;
+        try{
+            pngInfo = new PNGInfo(imgInfo);
+        }catch(err){
+            continue;
+        }
+        
         let bitDepth = pngInfo.chunks.IHDR.chunkData.readUint8(8);
         let colorType = pngInfo.chunks.IHDR.chunkData.readUint8(9);
-        
         let cT = 8;
         
         if(bitDepth === 8 && colorType === 3) {
